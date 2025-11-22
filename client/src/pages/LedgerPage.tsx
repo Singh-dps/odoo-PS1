@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 
@@ -42,6 +43,12 @@ const LedgerPage = () => {
                     <h1 className="text-2xl font-bold text-white">Stock Ledger</h1>
                     <p className="text-slate-400">View stock levels and movement history</p>
                 </div>
+                <button
+                    className="bg-neon-purple hover:bg-neon-pink text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-lg shadow-neon-purple/20"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>New</span>
+                </button>
             </div>
 
             {/* Tabs */}
