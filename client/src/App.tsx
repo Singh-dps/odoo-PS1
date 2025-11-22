@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ForgetPasswordPage from './pages/ForgetPasswordPage';
 
 import ProductList from './pages/ProductList';
 import ProductForm from './pages/ProductForm';
@@ -24,6 +26,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forget-password" element={<ForgetPasswordPage />} />
 
           <Route path="/" element={
             <ProtectedRoute>

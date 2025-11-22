@@ -8,4 +8,6 @@ export interface Product {
     price: number;
     createdAt: string;
     updatedAt: string;
+    onHand?: number;
+    freeToUse?: number;
 }

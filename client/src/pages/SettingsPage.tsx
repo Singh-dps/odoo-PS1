@@ -36,8 +36,8 @@ const SettingsPage = () => {
         }
     };
 
-    return (
 
+    return (
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-white">Settings</h1>
@@ -154,7 +154,6 @@ const SettingsPage = () => {
             </div>
         </div>
     );
-
 };
 
 export default SettingsPage;

@@ -13,6 +13,7 @@ async function main() {
         update: {},
         create: {
             username: 'admin',
+            email: 'admin@nexusims.com',
             password_hash: password,
             role: 'manager',
         },
