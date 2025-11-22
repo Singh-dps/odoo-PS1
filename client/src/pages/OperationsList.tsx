@@ -8,6 +8,7 @@ const OperationsList = () => {
     const [operations, setOperations] = useState<StockOperation[]>([]);
     const [searchParams] = useSearchParams();
     const typeFilter = searchParams.get('type');
+    const statusFilter = searchParams.get('status');
     const { token } = useAuth();
 
     useEffect(() => {
@@ -27,6 +28,18 @@ const OperationsList = () => {
 
     const filteredOperations = operations.filter(op => {
         if (typeFilter && op.operationType?.id !== typeFilter) return false;
+
+        if (statusFilter) {
+            if (statusFilter === 'late') {
+                // Simple check for late: pending status and created more than 7 days ago (mock logic)
+                // In real app, check scheduledDate
+                const isPending = ['draft', 'waiting', 'ready'].includes(op.status);
+                const isOld = new Date(op.createdAt).getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000;
+                return isPending && isOld;
+            }
+            return op.status === statusFilter;
+        }
+
         return true;
     });
 

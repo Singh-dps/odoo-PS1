@@ -37,7 +37,6 @@ const SettingsPage = () => {
     };
 
     return (
-    return (
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-white">Settings</h1>
@@ -51,8 +50,8 @@ const SettingsPage = () => {
                         <button
                             onClick={() => setActiveTab('warehouses')}
                             className={`w-full text-left px-4 py-3 text-sm font-medium flex items-center gap-3 transition-colors ${activeTab === 'warehouses'
-                                    ? 'bg-neon-purple/10 text-neon-purple border-l-2 border-neon-purple'
-                                    : 'text-slate-400 hover:bg-dark-bg hover:text-white'
+                                ? 'bg-neon-purple/10 text-neon-purple border-l-2 border-neon-purple'
+                                : 'text-slate-400 hover:bg-dark-bg hover:text-white'
                                 }`}
                         >
                             <WarehouseIcon className="w-4 h-4" />
@@ -61,8 +60,8 @@ const SettingsPage = () => {
                         <button
                             onClick={() => setActiveTab('locations')}
                             className={`w-full text-left px-4 py-3 text-sm font-medium flex items-center gap-3 transition-colors ${activeTab === 'locations'
-                                    ? 'bg-neon-cyan/10 text-neon-cyan border-l-2 border-neon-cyan'
-                                    : 'text-slate-400 hover:bg-dark-bg hover:text-white'
+                                ? 'bg-neon-cyan/10 text-neon-cyan border-l-2 border-neon-cyan'
+                                : 'text-slate-400 hover:bg-dark-bg hover:text-white'
                                 }`}
                         >
                             <MapPin className="w-4 h-4" />
@@ -135,9 +134,9 @@ const SettingsPage = () => {
                                                 <td className="px-6 py-4 font-medium text-white">{loc.name}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`text-xs px-2 py-1 rounded border capitalize ${loc.type === 'internal' ? 'border-green-500/30 text-green-400 bg-green-500/10' :
-                                                            loc.type === 'customer' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' :
-                                                                loc.type === 'supplier' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' :
-                                                                    'border-red-500/30 text-red-400 bg-red-500/10'
+                                                        loc.type === 'customer' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' :
+                                                            loc.type === 'supplier' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' :
+                                                                'border-red-500/30 text-red-400 bg-red-500/10'
                                                         }`}>
                                                         {loc.type}
                                                     </span>
@@ -153,7 +152,6 @@ const SettingsPage = () => {
                 </div>
             </div>
         </div>
-    );
     );
 };
 
