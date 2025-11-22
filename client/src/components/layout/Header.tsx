@@ -14,6 +14,7 @@ const Header = () => {
 
     const navItems = [
         { name: 'Dashboard', path: '/' },
+        { name: 'Receipts', path: '/receipts' },
         { name: 'Operations', path: '/operations' },
         { name: 'Stock', path: '/products' },
         { name: 'Move History', path: '/ledger' },

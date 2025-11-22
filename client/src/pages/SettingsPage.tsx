@@ -1,17 +1,27 @@
 import { useEffect, useState } from 'react';
-import { Plus, MapPin, Warehouse as WarehouseIcon } from 'lucide-react';
-import type { Warehouse, Location } from '../types/inventory';
+import { MapPin, Warehouse as WarehouseIcon } from 'lucide-react';
+import type { Warehouse } from '../types/inventory';
 import { useAuth } from '../context/AuthContext';
 
 const SettingsPage = () => {
     const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-    const [locations, setLocations] = useState<Location[]>([]);
     const [activeTab, setActiveTab] = useState<'warehouses' | 'locations'>('warehouses');
     const { token } = useAuth();
 
+    // Warehouse form state
+    const [warehouseName, setWarehouseName] = useState('');
+    const [warehouseCode, setWarehouseCode] = useState('');
+    const [warehouseAddress, setWarehouseAddress] = useState('');
+
+    // Location form state
+    const [locationName, setLocationName] = useState('');
+    const [locationCode, setLocationCode] = useState('');
+    const [locationWarehouse, setLocationWarehouse] = useState('');
+    const [locationRoom, setLocationRoom] = useState('');
+    const [locationRack, setLocationRack] = useState('');
+
     useEffect(() => {
         fetchWarehouses();
-        fetchLocations();
     }, []);
 
     const fetchWarehouses = async () => {
@@ -25,16 +35,97 @@ const SettingsPage = () => {
         }
     };
 
-    const fetchLocations = async () => {
+    const handleSaveWarehouse = async () => {
+        if (!warehouseName || !warehouseCode) {
+            alert('Please fill in Name and Short Code');
+            return;
+        }
+
         try {
-            const response = await fetch('http://localhost:3001/api/inventory/locations', {
-                headers: { Authorization: `Bearer ${token}` }
+            const response = await fetch('http://localhost:3001/api/inventory/warehouses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: warehouseName,
+                    shortCode: warehouseCode,
+                    address: warehouseAddress
+                })
             });
-            if (response.ok) setLocations(await response.json());
+
+            if (response.ok) {
+                alert('Warehouse saved successfully!');
+                setWarehouseName('');
+                setWarehouseCode('');
+                setWarehouseAddress('');
+                fetchWarehouses();
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.message || 'Failed to save warehouse'}`);
+            }
         } catch (error) {
-            console.error('Error fetching locations:', error);
+            console.error('Error saving warehouse:', error);
+            alert('Failed to save warehouse');
         }
     };
+
+    const handleSaveLocation = async () => {
+        if (!locationName || !locationCode || !locationWarehouse) {
+            alert('Please fill in Name, Short Code, and Warehouse');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3001/api/inventory/locations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: locationName,
+                    shortCode: locationCode,
+                    warehouseId: locationWarehouse,
+                    type: 'internal',
+                    roomNo: locationRoom,
+                    rackNo: locationRack
+                })
+            });
+
+            if (response.ok) {
+                alert('Location saved successfully!');
+                setLocationName('');
+                setLocationCode('');
+                setLocationWarehouse('');
+                setLocationRoom('');
+                setLocationRack('');
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.message || 'Failed to save location'}`);
+            }
+        } catch (error) {
+            console.error('Error saving location:', error);
+            alert('Failed to save location');
+        }
+    };
+
+    const handleCancelWarehouse = () => {
+        setWarehouseName('');
+        setWarehouseCode('');
+        setWarehouseAddress('');
+    };
+
+    const handleCancelLocation = () => {
+        setLocationName('');
+        setLocationCode('');
+        setLocationWarehouse('');
+        setLocationRoom('');
+        setLocationRack('');
+    };
+
+
 
 
     return (
@@ -56,7 +147,7 @@ const SettingsPage = () => {
                                 }`}
                         >
                             <WarehouseIcon className="w-4 h-4" />
-                            1. Warehouses
+                            Warehouses
                         </button>
                         <button
                             onClick={() => setActiveTab('locations')}
@@ -66,7 +157,7 @@ const SettingsPage = () => {
                                 }`}
                         >
                             <MapPin className="w-4 h-4" />
-                            2. Locations
+                            Locations
                         </button>
                     </div>
                 </div>
@@ -74,79 +165,136 @@ const SettingsPage = () => {
                 {/* Content Area */}
                 <div className="flex-1 bg-dark-surface rounded-lg border border-dark-border p-6 min-h-[500px]">
                     {activeTab === 'warehouses' && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">Warehouses</h2>
-                                    <p className="text-slate-400 text-sm">Manage your physical storage locations</p>
-                                </div>
-                                <button className="bg-neon-purple hover:bg-neon-pink text-white px-4 py-2 rounded-md text-sm flex items-center gap-2 transition-colors shadow-lg shadow-neon-purple/20">
-                                    <Plus className="w-4 h-4" /> Add Warehouse
-                                </button>
+                        <div className="space-y-8">
+                            <div className="border-b border-dark-border pb-4">
+                                <h2 className="text-2xl font-bold text-white">Warehouse</h2>
+                                <p className="text-slate-400 text-sm mt-1">Manage your physical storage locations</p>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                {warehouses.map(wh => (
-                                    <div key={wh.id} className="bg-dark-bg p-4 rounded-lg border border-dark-border flex items-center justify-between hover:border-neon-purple transition-colors group">
-                                        <div>
-                                            <h3 className="font-bold text-white text-lg">{wh.name}</h3>
-                                            <div className="flex items-center gap-4 mt-1">
-                                                <span className="text-xs font-mono bg-dark-surface px-2 py-1 rounded text-neon-purple border border-neon-purple/30">
-                                                    {wh.shortCode}
-                                                </span>
-                                                <span className="text-sm text-slate-400">
-                                                    {wh.locations?.length || 0} Locations
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <button className="text-slate-400 hover:text-white transition-colors">
-                                            Edit
-                                        </button>
-                                    </div>
-                                ))}
+                            <div className="space-y-6 max-w-2xl">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Name</label>
+                                    <input
+                                        type="text"
+                                        value={warehouseName}
+                                        onChange={(e) => setWarehouseName(e.target.value)}
+                                        className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-purple transition-colors"
+                                        placeholder="Enter warehouse name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Short Code</label>
+                                    <input
+                                        type="text"
+                                        value={warehouseCode}
+                                        onChange={(e) => setWarehouseCode(e.target.value)}
+                                        className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-purple transition-colors"
+                                        placeholder="Enter short code (e.g., WH)"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Address</label>
+                                    <textarea
+                                        value={warehouseAddress}
+                                        onChange={(e) => setWarehouseAddress(e.target.value)}
+                                        className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-purple transition-colors resize-none"
+                                        placeholder="Enter warehouse address"
+                                        rows={3}
+                                    />
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <button onClick={handleSaveWarehouse} className="flex-1 bg-neon-purple hover:bg-neon-pink text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg shadow-neon-purple/25 hover:shadow-neon-pink/40">
+                                        Save Warehouse
+                                    </button>
+                                    <button onClick={handleCancelWarehouse} className="px-6 py-3 border border-dark-border text-slate-400 hover:text-white hover:border-slate-400 rounded-lg transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'locations' && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">Locations</h2>
-                                    <p className="text-slate-400 text-sm">Define specific spots within warehouses</p>
-                                </div>
-                                <button className="bg-neon-cyan hover:bg-neon-blue text-dark-bg font-bold px-4 py-2 rounded-md text-sm flex items-center gap-2 transition-colors shadow-lg shadow-neon-cyan/20">
-                                    <Plus className="w-4 h-4" /> Add Location
-                                </button>
+                        <div className="space-y-8">
+                            <div className="border-b border-dark-border pb-4">
+                                <h2 className="text-2xl font-bold text-white">Location</h2>
+                                <p className="text-slate-400 text-sm mt-1">Define specific spots within warehouses</p>
                             </div>
 
-                            <div className="overflow-hidden rounded-lg border border-dark-border">
-                                <table className="w-full text-left">
-                                    <thead className="bg-dark-bg text-slate-400 text-xs uppercase font-medium">
-                                        <tr>
-                                            <th className="px-6 py-4">Name</th>
-                                            <th className="px-6 py-4">Type</th>
-                                            <th className="px-6 py-4">Warehouse</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-dark-border bg-dark-bg/50">
-                                        {locations.map(loc => (
-                                            <tr key={loc.id} className="hover:bg-dark-bg transition-colors">
-                                                <td className="px-6 py-4 font-medium text-white">{loc.name}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`text-xs px-2 py-1 rounded border capitalize ${loc.type === 'internal' ? 'border-green-500/30 text-green-400 bg-green-500/10' :
-                                                        loc.type === 'customer' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' :
-                                                            loc.type === 'supplier' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' :
-                                                                'border-red-500/30 text-red-400 bg-red-500/10'
-                                                        }`}>
-                                                        {loc.type}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-slate-400">{loc.warehouse?.name || '-'}</td>
-                                            </tr>
+                            <div className="space-y-6 max-w-2xl">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Name</label>
+                                    <input
+                                        type="text"
+                                        value={locationName}
+                                        onChange={(e) => setLocationName(e.target.value)}
+                                        className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan transition-colors"
+                                        placeholder="Enter location name"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Short Code</label>
+                                    <input
+                                        type="text"
+                                        value={locationCode}
+                                        onChange={(e) => setLocationCode(e.target.value)}
+                                        className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan transition-colors"
+                                        placeholder="Enter short code"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Warehouse</label>
+                                    <select value={locationWarehouse} onChange={(e) => setLocationWarehouse(e.target.value)} className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white focus:outline-none focus:border-neon-cyan transition-colors">
+                                        <option value="">Select Warehouse</option>
+                                        {warehouses.map(wh => (
+                                            <option key={wh.id} value={wh.id}>{wh.name} ({wh.shortCode})</option>
                                         ))}
-                                    </tbody>
-                                </table>
+                                    </select>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-400 mb-2">Room No.</label>
+                                        <input
+                                            type="text"
+                                            value={locationRoom}
+                                            onChange={(e) => setLocationRoom(e.target.value)}
+                                            className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan transition-colors"
+                                            placeholder="e.g., R101"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-400 mb-2">Rack No.</label>
+                                        <input
+                                            type="text"
+                                            value={locationRack}
+                                            onChange={(e) => setLocationRack(e.target.value)}
+                                            className="w-full bg-dark-bg border border-dark-border rounded-lg py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-neon-cyan transition-colors"
+                                            placeholder="e.g., RK-A1"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 border-t border-dark-border">
+                                    <p className="text-slate-400 text-sm text-center">
+                                        This holds the multiple locations of warehouse, rooms etc.
+                                    </p>
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <button onClick={handleSaveLocation} className="flex-1 bg-neon-purple hover:bg-neon-pink text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg shadow-neon-purple/25 hover:shadow-neon-pink/40">
+                                        Save Location
+                                    </button>
+                                    <button onClick={handleCancelLocation} className="px-6 py-3 border border-dark-border text-slate-400 hover:text-white hover:border-slate-400 rounded-lg transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

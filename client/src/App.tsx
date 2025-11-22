@@ -34,6 +34,7 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<DashboardPage />} />
+            <Route path="receipts" element={<OperationsList />} />
             <Route path="operations" element={<OperationsList />} />
             <Route path="operations/new" element={<OperationForm />} />
             <Route path="operations/:id" element={<OperationForm />} />
