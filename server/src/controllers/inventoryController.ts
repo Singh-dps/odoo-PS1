@@ -11,7 +11,11 @@ export const getStockLedger = async (req: Request, res: Response) => {
                 product: true,
                 locationSrc: true,
                 locationDest: true,
-                operation: true
+                operation: {
+                    include: {
+                        operationType: true
+                    }
+                }
             },
             orderBy: { createdAt: 'desc' }
         });
