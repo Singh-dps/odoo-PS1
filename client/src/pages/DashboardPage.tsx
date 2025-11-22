@@ -40,27 +40,27 @@ const DashboardPage = () => {
     );
 
     const OperationCard = ({ type }: { type: any }) => (
-        <div className="bg-dark-surface p-6 rounded-lg border border-dark-border hover:border-neon-purple transition-all duration-300 group relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <ArrowLeftRight className="w-24 h-24 text-neon-purple" />
+        <div className="bg-dark-bg border border-white rounded-xl p-6 flex flex-col justify-between h-48 hover:border-neon-purple transition-colors group relative overflow-hidden">
+            <div className="flex justify-between items-start">
+                <h3 className="text-xl font-medium text-white">{type.name}</h3>
             </div>
 
-            <div className="relative z-10">
-                <h3 className="text-xl font-bold text-white mb-1">{type.name}</h3>
-                <p className="text-slate-400 text-sm mb-6">{type.sequenceCode}</p>
+            <div className="flex justify-between items-end mt-4">
+                <a
+                    href={`/operations?type=${type.id}`}
+                    className="bg-dark-surface border border-white rounded-lg px-6 py-2 text-white hover:bg-white hover:text-dark-bg transition-colors font-medium"
+                >
+                    {type.pendingCount} to {type.type === 'receipt' ? 'receive' : type.type === 'delivery' ? 'deliver' : 'process'}
+                </a>
 
-                <div className="flex items-end justify-between">
-                    <div>
-                        <span className="text-3xl font-bold text-neon-cyan">{type.pendingCount}</span>
-                        <p className="text-slate-400 text-xs uppercase tracking-wider mt-1">To Process</p>
-                    </div>
-
-                    <a
-                        href={`/operations?type=${type.id}`}
-                        className="px-4 py-2 bg-neon-purple/10 text-neon-purple hover:bg-neon-purple hover:text-white rounded-md text-sm font-medium transition-all"
-                    >
-                        Process
-                    </a>
+                <div className="text-right text-sm text-slate-400">
+                    {type.lateCount > 0 && (
+                        <div className="text-white font-medium">{type.lateCount} Late</div>
+                    )}
+                    {type.waitingCount > 0 && (
+                        <div>{type.waitingCount} waiting</div>
+                    )}
+                    <div className="text-slate-500">{type._count?.operations || 0} operations</div>
                 </div>
             </div>
         </div>
@@ -68,17 +68,17 @@ const DashboardPage = () => {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-                <p className="text-slate-400">Overview of your inventory status</p>
-            </div>
-
-            {/* KPIs */}
             {/* Operation Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {stats.operationTypes.map((type) => (
-                    <OperationCard key={type.id} type={type} />
-                ))}
+                {stats.operationTypes && stats.operationTypes.length > 0 ? (
+                    stats.operationTypes.map((type) => (
+                        <OperationCard key={type.id} type={type} />
+                    ))
+                ) : (
+                    <div className="col-span-full text-center py-8 text-slate-500 border border-dashed border-dark-border rounded-lg">
+                        Loading operations...
+                    </div>
+                )}
             </div>
 
             {/* KPIs */}
@@ -109,7 +109,7 @@ const DashboardPage = () => {
                 />
             </div>
 
-            {/* Recent Activity Placeholder (could be a chart or list) */}
+            {/* Recent Activity Placeholder */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-dark-surface p-6 rounded-lg border border-dark-border h-64 flex items-center justify-center">
                     <p className="text-slate-500">Activity Chart Placeholder</p>

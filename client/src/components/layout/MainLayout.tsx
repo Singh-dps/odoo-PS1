@@ -1,18 +1,20 @@
-
+import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
+import Header from './Header';
 
-const MainLayout = () => {
+interface MainLayoutProps {
+    children?: React.ReactNode;
+}
+
+const MainLayout = ({ children }: MainLayoutProps) => {
     return (
-        <div className="flex h-screen bg-dark-bg text-slate-200 font-sans overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0">
-                <Topbar />
-                <main className="flex-1 overflow-auto p-6">
-                    <Outlet />
-                </main>
-            </div>
+        <div className="min-h-screen bg-dark-bg text-slate-200 font-sans selection:bg-neon-purple/30">
+            <Header />
+            <main className="p-6 max-w-7xl mx-auto">
+                <div className="animate-fade-in">
+                    {children || <Outlet />}
+                </div>
+            </main>
         </div>
     );
 };
