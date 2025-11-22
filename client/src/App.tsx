@@ -7,7 +7,6 @@ import RegisterPage from './pages/RegisterPage';
 import ForgetPasswordPage from './pages/ForgetPasswordPage';
 
 import ProductList from './pages/ProductList';
-import ProductForm from './pages/ProductForm';
 
 import SettingsPage from './pages/SettingsPage';
 import OperationsList from './pages/OperationsList';
@@ -39,7 +38,6 @@ function App() {
             <Route path="operations/new" element={<OperationForm />} />
             <Route path="operations/:id" element={<OperationForm />} />
             <Route path="products" element={<ProductList />} />
-            <Route path="products/new" element={<ProductForm />} />
             <Route path="ledger" element={<LedgerPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>

@@ -18,13 +18,11 @@ const OperationForm = () => {
 
     const [formData, setFormData] = useState({
         operationTypeId: '',
+        contact: '',
+        status: 'draft',
+        scheduledDate: new Date(Date.now() + 86400000).toISOString().slice(0, 16), // Tomorrow
         moves: [] as any[]
     });
-
-    useEffect(() => {
-        fetchData();
-        if (id) fetchOperation();
-    }, [id]);
 
     const fetchData = async () => {
         try {
@@ -50,17 +48,55 @@ const OperationForm = () => {
             if (res.ok) {
                 const data = await res.json();
                 setOperation(data);
-                // If viewing existing, we might not need to populate formData for editing if we only support create/validate
             }
         } catch (error) {
             console.error('Error fetching operation:', error);
         }
     };
 
+    useEffect(() => {
+        fetchData();
+        if (id) fetchOperation();
+    }, [id]);
+
+    // Auto-populate locations based on type
+    const getLocationsByType = (typeId: string) => {
+        const type = operationTypes.find(t => t.id === typeId);
+        if (!type) return { src: '', dest: '' };
+
+        // Assuming locations have types or names we can match. 
+        // For now, using simple logic based on type code/name if available, or hardcoded IDs if we had them.
+        // Since we don't have hardcoded IDs, we'll try to find by name/type.
+
+        let srcLoc = '';
+        let destLoc = '';
+
+        const vendorLoc = locations.find(l => l.type === 'supplier')?.id || '';
+        const customerLoc = locations.find(l => l.type === 'customer')?.id || '';
+        const stockLoc = locations.find(l => l.type === 'internal' && l.name === 'Stock')?.id || locations.find(l => l.type === 'internal')?.id || '';
+
+        if (type.type === 'receipt') {
+            srcLoc = vendorLoc;
+            destLoc = stockLoc;
+        } else if (type.type === 'delivery') {
+            srcLoc = stockLoc;
+            destLoc = customerLoc;
+        } else if (type.type === 'internal') {
+            srcLoc = stockLoc;
+            destLoc = stockLoc;
+        } else if (type.type === 'adjustment') {
+            srcLoc = stockLoc;
+            destLoc = stockLoc;
+        }
+
+        return { src: srcLoc, dest: destLoc };
+    };
+
     const addLine = () => {
+        const { src, dest } = getLocationsByType(formData.operationTypeId);
         setFormData({
             ...formData,
-            moves: [...formData.moves, { productId: '', quantity: 1, locationSrcId: '', locationDestId: '' }]
+            moves: [...formData.moves, { productId: '', quantity: 1, locationSrcId: src, locationDestId: dest }]
         });
     };
 
@@ -195,6 +231,42 @@ const OperationForm = () => {
                             <option key={t.id} value={t.id}>{t.name} ({t.sequenceCode})</option>
                         ))}
                     </select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-400 mb-2">Contact (Vendor/Customer)</label>
+                        <input
+                            type="text"
+                            value={formData.contact}
+                            onChange={e => setFormData({ ...formData, contact: e.target.value })}
+                            className="w-full bg-dark-bg border border-dark-border rounded-md py-2 px-4 text-white focus:outline-none focus:border-neon-cyan"
+                            placeholder="e.g. Acme Corp"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-400 mb-2">Schedule Date</label>
+                        <input
+                            type="datetime-local"
+                            value={formData.scheduledDate}
+                            onChange={e => setFormData({ ...formData, scheduledDate: e.target.value })}
+                            className="w-full bg-dark-bg border border-dark-border rounded-md py-2 px-4 text-white focus:outline-none focus:border-neon-cyan"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-400 mb-2">Status</label>
+                        <select
+                            value={formData.status}
+                            onChange={e => setFormData({ ...formData, status: e.target.value })}
+                            className="w-full bg-dark-bg border border-dark-border rounded-md py-2 px-4 text-white focus:outline-none focus:border-neon-cyan"
+                        >
+                            <option value="draft">Draft</option>
+                            <option value="waiting">Waiting</option>
+                            <option value="ready">Ready</option>
+                            <option value="done">Done</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>

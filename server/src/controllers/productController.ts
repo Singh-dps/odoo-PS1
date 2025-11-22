@@ -25,20 +25,22 @@ export const getProducts = async (req: Request, res: Response) => {
             product.stockMoves.forEach(move => {
                 // Calculate On Hand (Done moves)
                 if (move.status === 'done') {
-                    if (move.locationDest.type === 'internal') {
+                    // Incoming to internal location
+                    if (move.locationDest.type === 'internal' && move.locationSrc.type !== 'internal') {
                         onHand += move.quantity;
                     }
-                    if (move.locationSrc.type === 'internal') {
+                    // Outgoing from internal location
+                    if (move.locationSrc.type === 'internal' && move.locationDest.type !== 'internal') {
                         onHand -= move.quantity;
                     }
+                    // Internal transfer (internal to internal) - no net change to total on hand, 
+                    // but would affect specific location stock if we tracked that granularly.
+                    // For global product stock, it's neutral.
                 }
 
-                // Calculate Reserved (Draft moves from internal)
+                // Calculate Reserved (Draft/Waiting/Ready moves from internal)
                 // Reserved means it's planned to leave but hasn't left yet
-                // Typically linked to an operation that is 'waiting' or 'ready'
-                // And the move itself is not 'done'
                 if (move.status !== 'done' && move.locationSrc.type === 'internal') {
-                    // Check operation status if available, otherwise assume reserved if move exists
                     if (move.operation && ['waiting', 'ready'].includes(move.operation.status)) {
                         reserved += move.quantity;
                     }

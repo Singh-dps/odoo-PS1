@@ -60,6 +60,7 @@ model StockOperation {
   reference       String        @unique // e.g., WH/IN/0001
   operationTypeId String
   operationType   OperationType @relation(fields: [operationTypeId], references: [id])
+  contact         String?       // Vendor or Customer name
   status          String        @default("draft") // draft, waiting, ready, done, canceled
   scheduledDate   DateTime?
   createdAt       DateTime      @default(now())

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package, ArrowLeftRight, Clock, DollarSign } from 'lucide-react';
+import { Package, ArrowLeftRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const DashboardPage = () => {
@@ -18,10 +18,31 @@ const DashboardPage = () => {
 
     const fetchStats = async () => {
         try {
-            const res = await fetch('http://localhost:3001/api/dashboard/stats', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setStats(await res.json());
+            const [statsRes, productsRes, operationsRes] = await Promise.all([
+                fetch('http://localhost:3001/api/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } }),
+                fetch('http://localhost:3001/api/products', { headers: { Authorization: `Bearer ${token}` } }),
+                fetch('http://localhost:3001/api/operations', { headers: { Authorization: `Bearer ${token}` } })
+            ]);
+
+            if (statsRes.ok && productsRes.ok && operationsRes.ok) {
+                const statsData = await statsRes.json();
+                const productsData = await productsRes.json();
+                const operationsData = await operationsRes.json();
+
+                // Calculate KPIs
+                const totalProducts = productsData.filter((p: any) => p.onHand > 0).length;
+                const lowStock = productsData.filter((p: any) => p.onHand > 0 && p.onHand <= 5).length; // Mock reorder point 5
+                const outOfStock = productsData.filter((p: any) => p.onHand === 0).length;
+                const internalScheduled = operationsData.filter((op: any) => op.operationType?.type === 'internal' && op.status === 'ready').length;
+
+                setStats({
+                    ...statsData,
+                    productCount: totalProducts,
+                    lowStock,
+                    outOfStock,
+                    internalScheduled
+                });
+            }
         } catch (error) {
             console.error('Error fetching stats:', error);
         }
@@ -163,22 +184,22 @@ const DashboardPage = () => {
                     color="neon-purple"
                 />
                 <KPICard
-                    title="Total Operations"
-                    value={stats.operationCount}
-                    icon={ArrowLeftRight}
-                    color="neon-cyan"
-                />
-                <KPICard
-                    title="Pending Actions"
-                    value={stats.pendingOperations}
-                    icon={Clock}
+                    title="Low Stock Items"
+                    value={(stats as any).lowStock || 0}
+                    icon={AlertCircle}
                     color="yellow"
                 />
                 <KPICard
-                    title="Stock Value"
-                    value={`$${stats.totalValue.toFixed(2)}`}
-                    icon={DollarSign}
-                    color="green"
+                    title="Out of Stock"
+                    value={(stats as any).outOfStock || 0}
+                    icon={AlertCircle}
+                    color="red"
+                />
+                <KPICard
+                    title="Internal Scheduled"
+                    value={(stats as any).internalScheduled || 0}
+                    icon={ArrowLeftRight}
+                    color="neon-cyan"
                 />
             </div>
 

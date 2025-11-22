@@ -57,22 +57,29 @@ export const getOperation = async (req: Request, res: Response) => {
 
 export const createOperation = async (req: Request, res: Response) => {
     try {
-        const { operationTypeId, moves } = req.body; // moves: [{ productId, quantity, locationSrcId, locationDestId }]
+        const { operationTypeId, contact, status, scheduledDate, moves } = req.body;
 
-        const reference = await generateReference(operationTypeId);
+        // Generate Reference (e.g., WH/IN/0001)
+        const operationType = await prisma.operationType.findUnique({ where: { id: operationTypeId } });
+        if (!operationType) return res.status(400).json({ message: 'Invalid Operation Type' });
+
+        const count = await prisma.stockOperation.count({ where: { operationTypeId } });
+        const reference = `${operationType.sequenceCode}/${(count + 1).toString().padStart(4, '0')}`;
 
         const operation = await prisma.stockOperation.create({
             data: {
                 reference,
                 operationTypeId,
-                status: 'draft',
+                contact,
+                status: status || 'draft',
+                scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
                 moves: {
                     create: moves.map((move: any) => ({
                         productId: move.productId,
                         quantity: move.quantity,
                         locationSrcId: move.locationSrcId,
                         locationDestId: move.locationDestId,
-                        status: 'draft'
+                        status: status === 'done' ? 'done' : 'draft' // If op is done, moves are done
                     }))
                 }
             },
@@ -135,6 +142,7 @@ export const initOperationTypes = async (req: Request, res: Response) => {
             { name: 'Receipts', type: 'receipt', sequenceCode: 'WH/IN' },
             { name: 'Deliveries', type: 'delivery', sequenceCode: 'WH/OUT' },
             { name: 'Internal Transfers', type: 'internal', sequenceCode: 'WH/INT' },
+            { name: 'Inventory Adjustment', type: 'adjustment', sequenceCode: 'WH/INV' },
         ];
 
         for (const t of types) {

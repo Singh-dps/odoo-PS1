@@ -25,7 +25,8 @@ export interface StockOperation {
     reference: string;
     operationTypeId: string;
     operationType?: OperationType;
-    status: string;
+    contact?: string;
+    status: 'draft' | 'waiting' | 'ready' | 'done' | 'canceled';
     scheduledDate?: string;
     moves?: StockMove[];
     createdAt: string;
