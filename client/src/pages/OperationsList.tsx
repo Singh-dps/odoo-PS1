@@ -3,6 +3,7 @@ import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
 import type { StockOperation } from '../types/operation';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 const OperationsList = () => {
     const [operations, setOperations] = useState<StockOperation[]>([]);
@@ -25,7 +26,7 @@ const OperationsList = () => {
 
     const fetchOperations = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/operations', {
+            const response = await fetch(`${API_URL}/api/operations`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) setOperations(await response.json());

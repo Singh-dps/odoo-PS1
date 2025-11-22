@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Warehouse as WarehouseIcon, MapPin, Moon, Sun } from 'lucide-react';
 import type { Warehouse } from '../types/inventory';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 const SettingsPage = () => {
     const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -27,7 +28,7 @@ const SettingsPage = () => {
 
     const fetchWarehouses = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/inventory/warehouses', {
+            const response = await fetch(`${API_URL}/api/inventory/warehouses`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) setWarehouses(await response.json());
@@ -43,7 +44,7 @@ const SettingsPage = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:3001/api/inventory/warehouses', {
+            const response = await fetch(`${API_URL}/api/inventory/warehouses`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -324,8 +325,8 @@ const SettingsPage = () => {
                                     <button
                                         onClick={() => setTheme('dark')}
                                         className={`p-6 rounded-lg border-2 transition-all ${theme === 'dark'
-                                                ? 'border-neon-purple bg-neon-purple/10'
-                                                : 'border-dark-border hover:border-slate-600'
+                                            ? 'border-neon-purple bg-neon-purple/10'
+                                            : 'border-dark-border hover:border-slate-600'
                                             }`}
                                     >
                                         <div className="flex flex-col items-center gap-3">
@@ -342,8 +343,8 @@ const SettingsPage = () => {
                                     <button
                                         onClick={() => setTheme('light')}
                                         className={`p-6 rounded-lg border-2 transition-all ${theme === 'light'
-                                                ? 'border-neon-cyan bg-neon-cyan/10'
-                                                : 'border-dark-border hover:border-slate-600'
+                                            ? 'border-neon-cyan bg-neon-cyan/10'
+                                            : 'border-dark-border hover:border-slate-600'
                                             }`}
                                     >
                                         <div className="flex flex-col items-center gap-3">

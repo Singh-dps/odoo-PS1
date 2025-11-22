@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Search, ArrowRight, Printer, X, Save, Check, AlertCircle } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 const LedgerPage = () => {
     const [viewMode, setViewMode] = useState<'list' | 'form'>('list');
@@ -36,7 +37,7 @@ const LedgerPage = () => {
 
     const fetchLocations = async () => {
         try {
-            const res = await fetch('http://localhost:3001/api/inventory/locations', {
+            const res = await fetch(`${API_URL}/api/inventory/locations`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setLocations(await res.json());
@@ -47,7 +48,7 @@ const LedgerPage = () => {
 
     const fetchHistory = async () => {
         try {
-            const res = await fetch('http://localhost:3001/api/reporting/ledger', {
+            const res = await fetch(`${API_URL}/api/reporting/ledger`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setHistory(await res.json());
@@ -58,7 +59,7 @@ const LedgerPage = () => {
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch('http://localhost:3001/api/products', {
+            const res = await fetch(`${API_URL}/api/products`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setProducts(await res.json());
@@ -69,7 +70,7 @@ const LedgerPage = () => {
 
     const fetchOperationTypes = async () => {
         try {
-            const res = await fetch('http://localhost:3001/api/operations/types', {
+            const res = await fetch(`${API_URL}/api/operations/types`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setOperationTypes(await res.json());

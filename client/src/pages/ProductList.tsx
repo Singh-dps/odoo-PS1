@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import type { Product } from '../types/product';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 import Modal from '../components/Modal';
 import ProductForm from './ProductForm';
 
@@ -21,7 +22,7 @@ const ProductList = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/products', {
+            const response = await fetch(`${API_URL}/api/products`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -47,7 +48,7 @@ const ProductList = () => {
         if (!confirm('Are you sure you want to delete this product?')) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/products/${id}`, {
+            const response = await fetch(`${API_URL}/api/products/${id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -64,8 +65,8 @@ const ProductList = () => {
         setIsLoading(true);
         try {
             const url = editingProduct
-                ? `http://localhost:3001/api/products/${editingProduct.id}`
-                : 'http://localhost:3001/api/products';
+                ? `${API_URL}/api/products/${editingProduct.id}`
+                : `${API_URL}/api/products`;
 
             const method = editingProduct ? 'PUT' : 'POST';
 

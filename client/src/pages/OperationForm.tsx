@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Save, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 import type { Product } from '../types/product';
 import type { Location } from '../types/inventory';
 import type { OperationType, StockOperation } from '../types/operation';
@@ -51,9 +52,9 @@ const OperationForm = () => {
     const fetchData = async () => {
         try {
             const [typesRes, prodsRes, locsRes] = await Promise.all([
-                fetch('http://localhost:3001/api/operations/types', { headers: { Authorization: `Bearer ${token}` } }),
-                fetch('http://localhost:3001/api/products', { headers: { Authorization: `Bearer ${token}` } }),
-                fetch('http://localhost:3001/api/inventory/locations', { headers: { Authorization: `Bearer ${token}` } })
+                fetch(`${API_URL}/api/operations/types`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`${API_URL}/api/products`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`${API_URL}/api/inventory/locations`, { headers: { Authorization: `Bearer ${token}` } })
             ]);
 
             if (typesRes.ok) setOperationTypes(await typesRes.json());
@@ -66,7 +67,7 @@ const OperationForm = () => {
 
     const fetchOperation = async () => {
         try {
-            const res = await fetch(`http://localhost:3001/api/operations/${id}`, {
+            const res = await fetch(`${API_URL}/api/operations/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -159,7 +160,7 @@ const OperationForm = () => {
             }));
 
             try {
-                const res = await fetch('http://localhost:3001/api/operations', {
+                const res = await fetch(`${API_URL}/api/operations`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify({
@@ -182,7 +183,7 @@ const OperationForm = () => {
         } else {
             // Standard operation creation
             try {
-                const res = await fetch('http://localhost:3001/api/operations', {
+                const res = await fetch(`${API_URL}/api/operations`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify(formData)
@@ -203,7 +204,7 @@ const OperationForm = () => {
     const handleValidate = async () => {
         if (!operation) return;
         try {
-            const res = await fetch(`http://localhost:3001/api/operations/${operation.id}/validate`, {
+            const res = await fetch(`${API_URL}/api/operations/${operation.id}/validate`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -417,8 +418,8 @@ const OperationForm = () => {
                         {['draft', 'waiting', 'ready', 'done'].map((step, idx) => (
                             <div key={step} className="flex items-center">
                                 <div className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${operation.status === step
-                                        ? 'bg-neon-purple text-white'
-                                        : 'text-slate-500'
+                                    ? 'bg-neon-purple text-white'
+                                    : 'text-slate-500'
                                     }`}>
                                     {step}
                                 </div>

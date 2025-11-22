@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Package, ArrowLeftRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config';
 
 const DashboardPage = () => {
     const [stats, setStats] = useState({
@@ -19,9 +20,9 @@ const DashboardPage = () => {
     const fetchStats = async () => {
         try {
             const [statsRes, productsRes, operationsRes] = await Promise.all([
-                fetch('http://localhost:3001/api/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } }),
-                fetch('http://localhost:3001/api/products', { headers: { Authorization: `Bearer ${token}` } }),
-                fetch('http://localhost:3001/api/operations', { headers: { Authorization: `Bearer ${token}` } })
+                fetch(`${API_URL}/api/dashboard/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`${API_URL}/api/products`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`${API_URL}/api/operations`, { headers: { Authorization: `Bearer ${token}` } })
             ]);
 
             if (statsRes.ok && productsRes.ok && operationsRes.ok) {
