@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { MapPin, Warehouse as WarehouseIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Warehouse as WarehouseIcon, MapPin, Moon, Sun } from 'lucide-react';
 import type { Warehouse } from '../types/inventory';
 import { useAuth } from '../context/AuthContext';
 
 const SettingsPage = () => {
     const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-    const [activeTab, setActiveTab] = useState<'warehouses' | 'locations'>('warehouses');
+    const [activeTab, setActiveTab] = useState<'warehouses' | 'locations' | 'appearance'>('warehouses');
+    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
     const { token } = useAuth();
 
     // Warehouse form state
@@ -159,6 +160,16 @@ const SettingsPage = () => {
                             <MapPin className="w-4 h-4" />
                             Locations
                         </button>
+                        <button
+                            onClick={() => setActiveTab('appearance')}
+                            className={`w-full text-left px-4 py-3 text-sm font-medium flex items-center gap-3 transition-colors ${activeTab === 'appearance'
+                                ? 'bg-neon-pink/10 text-neon-pink border-l-2 border-neon-pink'
+                                : 'text-slate-400 hover:bg-dark-bg hover:text-white'
+                                }`}
+                        >
+                            {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                            Appearance
+                        </button>
                     </div>
                 </div>
 
@@ -295,6 +306,60 @@ const SettingsPage = () => {
                                         Cancel
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'appearance' && (
+                        <div className="space-y-6">
+                            <div className="border-b border-dark-border pb-4">
+                                <h2 className="text-2xl font-bold text-white">Appearance</h2>
+                                <p className="text-slate-400 mt-2">Customize the look and feel of your application</p>
+                            </div>
+
+                            {/* Theme Toggle */}
+                            <div className="space-y-4">
+                                <label className="block text-sm font-medium text-slate-300">Theme Mode</label>
+                                <div className="grid grid-cols-2 gap-4 max-w-md">
+                                    <button
+                                        onClick={() => setTheme('dark')}
+                                        className={`p-6 rounded-lg border-2 transition-all ${theme === 'dark'
+                                                ? 'border-neon-purple bg-neon-purple/10'
+                                                : 'border-dark-border hover:border-slate-600'
+                                            }`}
+                                    >
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Moon className={`w-8 h-8 ${theme === 'dark' ? 'text-neon-purple' : 'text-slate-400'
+                                                }`} />
+                                            <span className={`font-medium ${theme === 'dark' ? 'text-neon-purple' : 'text-slate-400'
+                                                }`}>Dark Mode</span>
+                                            {theme === 'dark' && (
+                                                <span className="text-xs text-green-400">✓ Active</span>
+                                            )}
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setTheme('light')}
+                                        className={`p-6 rounded-lg border-2 transition-all ${theme === 'light'
+                                                ? 'border-neon-cyan bg-neon-cyan/10'
+                                                : 'border-dark-border hover:border-slate-600'
+                                            }`}
+                                    >
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Sun className={`w-8 h-8 ${theme === 'light' ? 'text-neon-cyan' : 'text-slate-400'
+                                                }`} />
+                                            <span className={`font-medium ${theme === 'light' ? 'text-neon-cyan' : 'text-slate-400'
+                                                }`}>Light Mode</span>
+                                            {theme === 'light' && (
+                                                <span className="text-xs text-green-400">✓ Active</span>
+                                            )}
+                                        </div>
+                                    </button>
+                                </div>
+                                <p className="text-sm text-slate-500 mt-4">
+                                    Note: Light mode is currently in beta. The dark theme provides the best experience.
+                                </p>
                             </div>
                         </div>
                     )}

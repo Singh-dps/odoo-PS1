@@ -145,7 +145,7 @@ const ProductList = () => {
                         {filteredProducts.map((product) => (
                             <tr key={product.id} className="hover:bg-dark-bg/50 transition-colors">
                                 <td className="px-6 py-4 font-medium text-white">{product.name}</td>
-                                <td className="px-6 py-4 text-right text-slate-300">${product.cost.toFixed(2)}</td>
+                                <td className="px-6 py-4 text-right text-slate-300">₹{product.cost.toFixed(2)}</td>
                                 <td className="px-6 py-4 text-right text-white">{product.onHand || 0}</td>
                                 <td className="px-6 py-4 text-right text-white">{product.freeToUse || 0}</td>
                                 <td className="px-6 py-4 flex justify-center gap-2">
