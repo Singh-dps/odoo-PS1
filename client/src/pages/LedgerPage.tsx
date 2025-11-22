@@ -1,19 +1,37 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, ArrowRight } from 'lucide-react';
+import { Plus, Search, ArrowRight, Printer, X, Save, Check, AlertCircle } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
 
 const LedgerPage = () => {
+    const [viewMode, setViewMode] = useState<'list' | 'form'>('list');
     const [history, setHistory] = useState<any[]>([]);
     const [locations, setLocations] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
+    const [operationTypes, setOperationTypes] = useState<any[]>([]);
+
+    // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [fromLocation, setFromLocation] = useState('');
     const [toLocation, setToLocation] = useState('');
+
+    // Form State
+    const [formData, setFormData] = useState({
+        reference: 'DRAFT',
+        deliveryAddressId: '',
+        scheduleDate: new Date().toISOString().split('T')[0],
+        responsible: 'Administrator', // Placeholder
+        operationTypeId: '',
+        lines: [] as any[] // { productId, productName, sku, quantity, onHand }
+    });
+
     const { token } = useAuth();
 
     useEffect(() => {
         fetchLocations();
         fetchHistory();
+        fetchProducts();
+        fetchOperationTypes();
     }, []);
 
     const fetchLocations = async () => {
@@ -38,8 +56,53 @@ const LedgerPage = () => {
         }
     };
 
+    const fetchProducts = async () => {
+        try {
+            const res = await fetch('http://localhost:3001/api/products', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setProducts(await res.json());
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+    };
+
+    const fetchOperationTypes = async () => {
+        try {
+            const res = await fetch('http://localhost:3001/api/operations/types', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setOperationTypes(await res.json());
+        } catch (error) {
+            console.error('Error fetching operation types:', error);
+        }
+    };
+
+    const handleAddLine = () => {
+        setFormData({
+            ...formData,
+            lines: [...formData.lines, { productId: '', quantity: 1, onHand: 0 }]
+        });
+    };
+
+    const handleUpdateLine = (index: number, field: string, value: any) => {
+        const newLines = [...formData.lines];
+        if (field === 'productId') {
+            const product = products.find(p => p.id === value);
+            newLines[index] = {
+                ...newLines[index],
+                productId: value,
+                productName: product?.name,
+                sku: product?.sku,
+                onHand: product?.onHand || 0 // Assuming product object has onHand from API
+            };
+        } else {
+            newLines[index] = { ...newLines[index], [field]: value };
+        }
+        setFormData({ ...formData, lines: newLines });
+    };
+
     const filteredHistory = history.filter(move => {
-        // Search Term Filter
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             const matchesSearch = (
@@ -51,7 +114,6 @@ const LedgerPage = () => {
             if (!matchesSearch) return false;
         }
 
-        // Location Filter Logic
         if (fromLocation && toLocation) {
             return (
                 (move.locationSrcId === fromLocation && move.locationDestId === toLocation) ||
@@ -60,13 +122,8 @@ const LedgerPage = () => {
             );
         }
 
-        if (fromLocation) {
-            return move.locationSrcId === fromLocation || move.locationDestId === fromLocation;
-        }
-
-        if (toLocation) {
-            return move.locationSrcId === toLocation || move.locationDestId === toLocation;
-        }
+        if (fromLocation) return move.locationSrcId === fromLocation || move.locationDestId === fromLocation;
+        if (toLocation) return move.locationSrcId === toLocation || move.locationDestId === toLocation;
 
         return true;
     });
@@ -86,6 +143,180 @@ const LedgerPage = () => {
         if (isOutbound) return 'bg-red-500/10 text-red-500 border-red-500/20';
         return 'bg-slate-500/10 text-slate-500 border-slate-500/20';
     };
+
+    if (viewMode === 'form') {
+        return (
+            <div className="space-y-6">
+                {/* Top Bar */}
+                <div className="flex items-center justify-between bg-dark-surface p-4 rounded-lg border border-dark-border">
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-xl font-bold text-white mr-4">Delivery</h1>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className="text-slate-400 hover:text-white transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button className="bg-neon-purple hover:bg-neon-pink text-white px-4 py-1.5 rounded-md text-sm transition-colors shadow-lg shadow-neon-purple/20 flex items-center gap-2">
+                            <Save className="w-4 h-4" />
+                            <span>Save</span>
+                        </button>
+                        <button className="bg-dark-bg border border-dark-border hover:border-neon-cyan text-slate-300 px-4 py-1.5 rounded-md text-sm transition-colors">
+                            Validate
+                        </button>
+                        <button className="text-slate-400 hover:text-white transition-colors">
+                            <Printer className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {/* Status Timeline */}
+                    <div className="flex items-center bg-dark-bg rounded-full px-1 py-1 border border-dark-border">
+                        {['Draft', 'Waiting', 'Ready', 'Done'].map((status, idx) => (
+                            <div key={status} className={`px-4 py-1 rounded-full text-xs font-medium ${idx === 0 ? 'bg-neon-purple text-white' : 'text-slate-500'
+                                }`}>
+                                {status.toUpperCase()}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Form Content */}
+                <div className="bg-dark-surface rounded-lg border border-dark-border p-6 space-y-8">
+
+                    {/* Metadata */}
+                    <div className="grid grid-cols-2 gap-12">
+                        <div className="space-y-6">
+                            <h2 className="text-3xl font-mono text-white font-bold">{formData.reference}</h2>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <label className="text-slate-400 text-sm font-medium">Delivery Address</label>
+                                    <select
+                                        className="col-span-2 bg-dark-bg border border-dark-border rounded-md py-2 px-3 text-white focus:border-neon-cyan outline-none"
+                                        value={formData.deliveryAddressId}
+                                        onChange={(e) => setFormData({ ...formData, deliveryAddressId: e.target.value })}
+                                    >
+                                        <option value="">Select Address...</option>
+                                        {locations.map(loc => (
+                                            <option key={loc.id} value={loc.id}>{loc.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <label className="text-slate-400 text-sm font-medium">Operation Type</label>
+                                    <select
+                                        className="col-span-2 bg-dark-bg border border-dark-border rounded-md py-2 px-3 text-white focus:border-neon-cyan outline-none"
+                                        value={formData.operationTypeId}
+                                        onChange={(e) => setFormData({ ...formData, operationTypeId: e.target.value })}
+                                    >
+                                        <option value="">Select Type...</option>
+                                        {operationTypes.map(type => (
+                                            <option key={type.id} value={type.id}>{type.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 pt-14">
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <label className="text-slate-400 text-sm font-medium">Schedule Date</label>
+                                <input
+                                    type="date"
+                                    className="col-span-2 bg-dark-bg border border-dark-border rounded-md py-2 px-3 text-white focus:border-neon-cyan outline-none"
+                                    value={formData.scheduleDate}
+                                    onChange={(e) => setFormData({ ...formData, scheduleDate: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <label className="text-slate-400 text-sm font-medium">Responsible</label>
+                                <select
+                                    className="col-span-2 bg-dark-bg border border-dark-border rounded-md py-2 px-3 text-white focus:border-neon-cyan outline-none"
+                                    value={formData.responsible}
+                                    onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
+                                >
+                                    <option>Administrator</option>
+                                    <option>Staff</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Product Table */}
+                    <div className="mt-8">
+                        <div className="border border-dark-border rounded-lg overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead className="bg-dark-bg border-b border-dark-border text-slate-400 uppercase text-xs">
+                                    <tr>
+                                        <th className="px-4 py-3 font-medium">Product</th>
+                                        <th className="px-4 py-3 font-medium w-32 text-right">Quantity</th>
+                                        <th className="px-4 py-3 font-medium w-10"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-dark-border">
+                                    {formData.lines.map((line, idx) => (
+                                        <tr key={idx} className={`group ${line.onHand < line.quantity ? 'bg-red-500/5' : ''}`}>
+                                            <td className="px-4 py-2">
+                                                <div className="flex items-center gap-2">
+                                                    <select
+                                                        className="w-full bg-transparent text-white outline-none py-1"
+                                                        value={line.productId}
+                                                        onChange={(e) => handleUpdateLine(idx, 'productId', e.target.value)}
+                                                    >
+                                                        <option value="" className="bg-dark-surface">Select Product...</option>
+                                                        {products.map(p => (
+                                                            <option key={p.id} value={p.id} className="bg-dark-surface">
+                                                                [{p.sku}] {p.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    {line.onHand < line.quantity && line.productId && (
+                                                        <div className="text-red-500" title="Out of Stock">
+                                                            <AlertCircle className="w-4 h-4" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <input
+                                                    type="number"
+                                                    className="w-full bg-transparent text-right text-white outline-none py-1 font-mono"
+                                                    value={line.quantity}
+                                                    onChange={(e) => handleUpdateLine(idx, 'quantity', parseFloat(e.target.value))}
+                                                />
+                                            </td>
+                                            <td className="px-4 py-2 text-center">
+                                                <button
+                                                    onClick={() => {
+                                                        const newLines = formData.lines.filter((_, i) => i !== idx);
+                                                        setFormData({ ...formData, lines: newLines });
+                                                    }}
+                                                    className="text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+
+                                    {/* Add New Line */}
+                                    <tr>
+                                        <td colSpan={3} className="px-4 py-3">
+                                            <button
+                                                onClick={handleAddLine}
+                                                className="text-neon-cyan hover:text-neon-blue text-sm font-medium transition-colors flex items-center gap-2"
+                                            >
+                                                Add a line
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -107,6 +338,7 @@ const LedgerPage = () => {
                             />
                         </div>
                         <button
+                            onClick={() => setViewMode('form')}
                             className="bg-neon-purple hover:bg-neon-pink text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-lg shadow-neon-purple/20"
                         >
                             <Plus className="w-4 h-4" />
